@@ -5,7 +5,8 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
+import Credentials from "next-auth/providers/credentials";
+import GitHubProvider from "next-auth/providers/github";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -31,11 +32,6 @@ declare module "next-auth" {
   // }
 }
 
-/**
- * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
- *
- * @see https://next-auth.js.org/configuration/options
- */
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: ({ session, user }) => ({
@@ -48,19 +44,43 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: PrismaAdapter(db) as Adapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    GitHubProvider({
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
     }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        username: { label: "Username", type: "text", placeholder: "jsmith" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials): Promise<User | null> {
+        const users = [
+          {
+            id: "test-user-1",
+            userName: "test1",
+            name: "Test 1",
+            password: "pass",
+            email: "test1@donotreply.com",
+          },
+          {
+            id: "test-user-2",
+            userName: "test2",
+            name: "Test 2",
+            password: "pass",
+            email: "test2@donotreply.com",
+          },
+        ];
+        const user = users.find(
+          (user) =>
+            user.userName === credentials.username &&
+            user.password === credentials.password,
+        );
+        return user
+          ? { id: user.id, name: user.name, email: user.email }
+          : null;
+      },
+    }),
   ],
 };
 
