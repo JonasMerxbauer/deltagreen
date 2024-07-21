@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { LatestPost } from "~/app/_components/post";
-import { Calendar } from "~/components/ui/calendar";
 import {
   Table,
   TableBody,
@@ -12,9 +10,10 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { logout } from "~/server/actions";
+import { logout } from "~/server/auth-actions";
 import { validateRequest } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
+import { Button } from "~/components/ui/button";
 
 export default async function Home() {
   const { user } = await validateRequest();
@@ -28,31 +27,37 @@ export default async function Home() {
   return (
     <HydrateClient>
       <main className="flex min-h-screen flex-col items-center justify-center">
-        <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task.id}>
-                <TableCell className="font-medium">
-                  <Link href={`task/${task.id}`}>{task.name}</Link>
-                </TableCell>
-                <TableCell>{task.description}</TableCell>
-                <TableCell>
-                  {new Date(task.dueDate).toLocaleDateString()}
-                </TableCell>
+        <Button asChild>
+          <Link href="/task/new">Create new task</Link>
+        </Button>
+        <div className="w-[960px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Due date</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Calendar mode="single" />
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell className="font-medium">{task.id}</TableCell>
+                  <TableCell>{task.name}</TableCell>
+                  <TableCell>
+                    {new Date(task.dueDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <Button asChild>
+                      <Link href={`task/${task.id}`}>Edit</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
         <form action={logout}>
           <button>Sign out</button>
         </form>

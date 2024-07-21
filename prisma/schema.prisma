@@ -19,6 +19,8 @@ model Task {
     createdById String
 
     @@index([name])
+    @@index([dueDate])
+    @@index([createdById])
 }
 
 model User {
