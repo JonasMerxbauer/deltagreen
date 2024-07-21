@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { LatestPost } from "~/app/_components/post";
+import { Calendar } from "~/components/ui/calendar";
 import {
   Table,
   TableBody,
@@ -10,18 +12,22 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { getServerAuthSession } from "~/server/auth";
+import { logout } from "~/server/actions";
+import { validateRequest } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await getServerAuthSession();
+  const { user } = await validateRequest();
+  if (!user) {
+    return redirect("/login");
+  }
+  // void api.post.getLatest.prefetch();
 
-  void api.post.getLatest.prefetch();
+  const tasks = await api.task.getAll();
 
   return (
     <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center">
         <Table>
           <TableCaption>A list of your recent invoices.</TableCaption>
           <TableHeader>
@@ -33,14 +39,23 @@ export default async function Home() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">INV001</TableCell>
-              <TableCell>Paid</TableCell>
-              <TableCell>Credit Card</TableCell>
-              <TableCell className="text-right">$250.00</TableCell>
-            </TableRow>
+            {tasks.map((task) => (
+              <TableRow key={task.id}>
+                <TableCell className="font-medium">
+                  <Link href={`task/${task.id}`}>{task.name}</Link>
+                </TableCell>
+                <TableCell>{task.description}</TableCell>
+                <TableCell>
+                  {new Date(task.dueDate).toLocaleDateString()}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
+        <Calendar mode="single" />
+        <form action={logout}>
+          <button>Sign out</button>
+        </form>
       </main>
     </HydrateClient>
   );

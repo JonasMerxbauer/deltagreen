@@ -1,92 +1,70 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import {
-  getServerSession,
-  type DefaultSession,
-  type NextAuthOptions,
-} from "next-auth";
-import { type Adapter } from "next-auth/adapters";
-import Credentials from "next-auth/providers/credentials";
-import GitHubProvider from "next-auth/providers/github";
+import { Lucia, type Session, type User } from "lucia";
+import { adapter } from "~/server/db";
+import { cookies } from "next/headers";
+import { cache } from "react";
 
-import { env } from "~/env";
-import { db } from "~/server/db";
+export const lucia = new Lucia(adapter, {
+  sessionCookie: {
+    // this sets cookies with super long expiration
+    // since Next.js doesn't allow Lucia to extend cookie expiration when rendering pages
+    expires: false,
+    attributes: {
+      // set to `true` when using HTTPS
+      secure: process.env.NODE_ENV === "production",
+    },
+  },
+  getUserAttributes: (attributes) => {
+    return {
+      // attributes has the type of DatabaseUserAttributes
+      username: attributes.username,
+    };
+  },
+});
 
-/**
- * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
- * object and keep type safety.
- *
- * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
- */
-declare module "next-auth" {
-  interface Session extends DefaultSession {
-    user: {
-      id: string;
-      // ...other properties
-      // role: UserRole;
-    } & DefaultSession["user"];
+export const validateRequest = cache(
+  async (): Promise<
+    { user: User; session: Session } | { user: null; session: null }
+  > => {
+    const sessionId = cookies().get(lucia.sessionCookieName)?.value ?? null;
+    if (!sessionId) {
+      return {
+        user: null,
+        session: null,
+      };
+    }
+
+    const result = await lucia.validateSession(sessionId);
+    // next.js throws when you attempt to set cookie when rendering page
+    try {
+      if (result.session?.fresh) {
+        const sessionCookie = lucia.createSessionCookie(result.session.id);
+        cookies().set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        );
+      }
+      if (!result.session) {
+        const sessionCookie = lucia.createBlankSessionCookie();
+        cookies().set(
+          sessionCookie.name,
+          sessionCookie.value,
+          sessionCookie.attributes,
+        );
+      }
+    } catch {}
+    return result;
+  },
+);
+
+// IMPORTANT!
+declare module "lucia" {
+  interface Register {
+    Lucia: typeof lucia;
+    DatabaseUserAttributes: DatabaseUserAttributes;
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
-export const authOptions: NextAuthOptions = {
-  callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
-  },
-  adapter: PrismaAdapter(db) as Adapter,
-  providers: [
-    GitHubProvider({
-      clientId: env.GITHUB_CLIENT_ID,
-      clientSecret: env.GITHUB_CLIENT_SECRET,
-    }),
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        username: { label: "Username", type: "text", placeholder: "jsmith" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials): Promise<User | null> {
-        const users = [
-          {
-            id: "test-user-1",
-            userName: "test1",
-            name: "Test 1",
-            password: "pass",
-            email: "test1@donotreply.com",
-          },
-          {
-            id: "test-user-2",
-            userName: "test2",
-            name: "Test 2",
-            password: "pass",
-            email: "test2@donotreply.com",
-          },
-        ];
-        const user = users.find(
-          (user) =>
-            user.userName === credentials.username &&
-            user.password === credentials.password,
-        );
-        return user
-          ? { id: user.id, name: user.name, email: user.email }
-          : null;
-      },
-    }),
-  ],
-};
-
-/**
- * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
- *
- * @see https://next-auth.js.org/configuration/nextjs
- */
-export const getServerAuthSession = () => getServerSession(authOptions);
+interface DatabaseUserAttributes {
+  username: string;
+}
