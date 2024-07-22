@@ -6,7 +6,6 @@ import { db } from "./db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { TaskFormSchema } from "~/components/TaskForm";
-import { error } from "console";
 
 export const createTask = async ({
   name,

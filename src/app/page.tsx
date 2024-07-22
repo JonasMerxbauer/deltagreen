@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import {
   Table,
@@ -21,7 +20,7 @@ import {
 } from "~/components/ui/card";
 import { DeleteButton } from "~/components/DeleteButton";
 
-export default async function Home() {
+export default async function Page() {
   const tasks = await api.task.getAll();
 
   return (

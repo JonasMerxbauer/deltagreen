@@ -6,7 +6,7 @@ import { AlertCircle, CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { cn, fromDateToString } from "~/lib/utils";
+import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -69,12 +69,12 @@ export function TaskForm({
   const onSubmit = async (data: z.infer<typeof TaskFormSchema>) => {
     if (isNew && !taskId) {
       const result = await createTask(data);
-      if (result.error) {
+      if (result?.error) {
         setError({ error: result.error });
       }
     } else {
       const result = await updateTask({ id: Number(taskId), ...data });
-      if (result.error) {
+      if (result?.error) {
         setError({ error: result.error });
       }
     }
@@ -83,11 +83,6 @@ export function TaskForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <Input
-          className="hidden"
-          name="id"
-          defaultValue={isNew ? "" : taskId}
-        />
         <FormField
           control={form.control}
           name="name"
@@ -118,11 +113,6 @@ export function TaskForm({
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Due date</FormLabel>
-              <Input
-                name="dueDate"
-                className="hidden"
-                defaultValue={field.value ? fromDateToString(field.value) : ""}
-              />
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>

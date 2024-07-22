@@ -5,17 +5,13 @@ import { cache } from "react";
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
-    // this sets cookies with super long expiration
-    // since Next.js doesn't allow Lucia to extend cookie expiration when rendering pages
     expires: false,
     attributes: {
-      // set to `true` when using HTTPS
       secure: process.env.NODE_ENV === "production",
     },
   },
   getUserAttributes: (attributes) => {
     return {
-      // attributes has the type of DatabaseUserAttributes
       username: attributes.username,
     };
   },
@@ -34,7 +30,6 @@ export const validateRequest = cache(
     }
 
     const result = await lucia.validateSession(sessionId);
-    // next.js throws when you attempt to set cookie when rendering page
     try {
       if (result.session?.fresh) {
         const sessionCookie = lucia.createSessionCookie(result.session.id);

@@ -28,6 +28,7 @@ export const taskRouter = createTRPCRouter({
       where: { createdBy: { id: ctx.session.user.id } },
     });
   }),
+
   getTask: protectedProcedure
     .input(z.object({ id: z.number().min(1) }))
     .query(({ ctx, input }) => {
@@ -35,8 +36,4 @@ export const taskRouter = createTRPCRouter({
         where: { id: input.id, createdBy: { id: ctx.session.user.id } },
       });
     }),
-
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
-  }),
 });
