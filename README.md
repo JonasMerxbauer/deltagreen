@@ -1,18 +1,14 @@
 Full stack web application for managing tasks that is made for step in the interview process
 
-### 1. Download the project
-
-Download the main branch of the project for local database or turso branch for turso database
-
-### 2. Install packages
+### 1. Install packages
 
 ```bash
-pnpm create t3-app@latest
+pnpm install
 ```
 
 ### 2. Set up env file
 
-Copy `.env.example` to `.env` and either fill in
+Copy `.env.example` to `.env` and fill in the PostgreSQL database credentials
 
 ### 3. Set up database
 
