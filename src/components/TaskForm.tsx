@@ -6,7 +6,7 @@ import { AlertCircle, CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { cn } from "~/lib/utils";
+import { cn, ignoreTimezone } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Calendar } from "~/components/ui/calendar";
 import {
@@ -68,12 +68,19 @@ export function TaskForm({
 
   const onSubmit = async (data: z.infer<typeof TaskFormSchema>) => {
     if (isNew && !taskId) {
-      const result = await createTask(data);
+      const result = await createTask({
+        ...data,
+        dueDate: ignoreTimezone(data.dueDate),
+      });
       if (result?.error) {
         setError({ error: result.error });
       }
     } else {
-      const result = await updateTask({ id: Number(taskId), ...data });
+      const result = await updateTask({
+        id: Number(taskId),
+        ...data,
+        dueDate: ignoreTimezone(data.dueDate),
+      });
       if (result?.error) {
         setError({ error: result.error });
       }
