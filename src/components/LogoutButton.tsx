@@ -1,6 +1,6 @@
 import { logout } from "~/server/auth-actions";
-import { Button } from "./ui/button";
 import { validateRequest } from "~/server/auth";
+import { SubmitButton } from "./SubmitButton";
 
 export default async function LogoutButton() {
   const session = await validateRequest();
@@ -11,7 +11,7 @@ export default async function LogoutButton() {
 
   return (
     <form action={logout}>
-      <Button>Sign out</Button>
+      <SubmitButton>Sign out</SubmitButton>
     </form>
   );
 }

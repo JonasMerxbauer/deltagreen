@@ -156,7 +156,15 @@ export function TaskForm({
             <AlertTitle>{error.error}</AlertTitle>
           </Alert>
         )}
-        <Button type="submit">{isNew ? "Create" : "Update"}</Button>
+        <Button disabled={form.formState.isSubmitting}>
+          {!form.formState.isSubmitting
+            ? isNew
+              ? "Create"
+              : "Update"
+            : isNew
+              ? "Creating..."
+              : "Updating..."}
+        </Button>
       </form>
     </Form>
   );

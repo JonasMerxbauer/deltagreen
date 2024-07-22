@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { register } from "~/server/auth-actions";
@@ -15,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Alert, AlertTitle } from "./ui/alert";
 import { AlertCircle } from "lucide-react";
+import { SubmitButton } from "./SubmitButton";
 
 export default function RegisterForm() {
   const [error, setError] = useState({ error: "" });
@@ -58,7 +58,7 @@ export default function RegisterForm() {
           </div>
         </CardContent>
         <CardFooter className="flex">
-          <Button type="submit">Register</Button>
+          <SubmitButton>Register</SubmitButton>
         </CardFooter>
       </form>
     </Card>

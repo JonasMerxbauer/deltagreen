@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { login } from "~/server/auth-actions";
@@ -15,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertTitle } from "./ui/alert";
+import { SubmitButton } from "./SubmitButton";
 
 export default function LoginForm() {
   const [error, setError] = useState({ error: "" });
@@ -60,7 +60,7 @@ export default function LoginForm() {
           </div>
         </CardContent>
         <CardFooter className="flex">
-          <Button type="submit">Login</Button>
+          <SubmitButton>Login</SubmitButton>
         </CardFooter>
       </form>
     </Card>
