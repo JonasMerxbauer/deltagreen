@@ -19,11 +19,11 @@ Copy `.env.example` to `.env` and either fill in
 Run this command to push the schema to the database
 
 ```bash
-`pnpm db:push`
+pnpm db:push
 ```
 
 ### 4. Run the app
 
 ```bash
-`pnpm run dev`
+pnpm run dev
 ```
