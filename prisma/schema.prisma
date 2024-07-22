@@ -19,8 +19,6 @@ model Task {
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
 
-    @@index([name])
-    @@index([dueDate])
     @@index([createdById])
 }
 
@@ -38,4 +36,6 @@ model Session {
     expiresAt DateTime
 
     user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+
+    @@index([userId])
 }
