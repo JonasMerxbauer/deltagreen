@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { AlertCircle, CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -24,11 +24,23 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "./ui/input";
 import { createTask, updateTask } from "~/server/task-actions";
+import { useState } from "react";
+import { Alert, AlertTitle } from "./ui/alert";
 
-const FormSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  dueDate: z.date(),
+export const TaskFormSchema = z.object({
+  name: z
+    .string({
+      required_error: "A name is required.",
+    })
+    .min(1),
+  description: z
+    .string({
+      required_error: "A description is required.",
+    })
+    .min(1),
+  dueDate: z.date({
+    required_error: "A due dateis required.",
+  }),
 });
 
 export function TaskForm({
@@ -44,8 +56,9 @@ export function TaskForm({
   description?: string;
   dueDate?: Date;
 }) {
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const [error, setError] = useState({ error: "" });
+  const form = useForm<z.infer<typeof TaskFormSchema>>({
+    resolver: zodResolver(TaskFormSchema),
     defaultValues: {
       name: name ?? "",
       description: description ?? "",
@@ -53,9 +66,23 @@ export function TaskForm({
     },
   });
 
+  const onSubmit = async (data: z.infer<typeof TaskFormSchema>) => {
+    if (isNew && !taskId) {
+      const result = await createTask(data);
+      if (result.error) {
+        setError({ error: result.error });
+      }
+    } else {
+      const result = await updateTask({ id: Number(taskId), ...data });
+      if (result.error) {
+        setError({ error: result.error });
+      }
+    }
+  };
+
   return (
     <Form {...form}>
-      <form action={isNew ? createTask : updateTask} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <Input
           className="hidden"
           name="id"
@@ -126,7 +153,13 @@ export function TaskForm({
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        {error.error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{error.error}</AlertTitle>
+          </Alert>
+        )}
+        <Button type="submit">{isNew ? "Create" : "Update"}</Button>
       </form>
     </Form>
   );
